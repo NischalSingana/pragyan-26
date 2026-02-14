@@ -1,0 +1,90 @@
+{
+  "totalPatients": 42,
+  "patients": [
+    {
+      "id": "uuid-1",
+      "name": "Jane Doe",
+      "age": 55,
+      "gender": "F",
+      "riskLevel": "HIGH",
+      "riskScore": 0.85,
+      "recommendedDepartment": "Emergency",
+      "adjustedDepartment": "Emergency",
+      "adjusted": false,
+      "estimatedWaitMin": 12,
+      "priorityScore": 0.78,
+      "ewsScore": 3,
+      "aiDisagreement": false,
+      "createdAt": "2025-02-14T10:00:00.000Z"
+    },
+    {
+      "id": "uuid-2",
+      "name": "John Smith",
+      "age": 34,
+      "gender": "M",
+      "riskLevel": "REVIEW_REQUIRED",
+      "riskScore": 0.55,
+      "recommendedDepartment": "General Medicine",
+      "adjustedDepartment": "General Medicine",
+      "adjusted": false,
+      "estimatedWaitMin": 8,
+      "priorityScore": 0.42,
+      "ewsScore": null,
+      "aiDisagreement": true,
+      "createdAt": "2025-02-14T09:55:00.000Z"
+    }
+  ],
+  "departmentLoads": [
+    {
+      "id": "dept-1",
+      "departmentName": "Emergency",
+      "currentPatients": 8,
+      "availableDoctors": 3,
+      "avgWaitTime": 15,
+      "loadRatio": 0.72,
+      "estimatedWaitMin": 40,
+      "bedOccupancy": 85
+    }
+  ],
+  "riskDistribution": [
+    { "level": "LOW", "count": 20 },
+    { "level": "MEDIUM", "count": 15 },
+    { "level": "HIGH", "count": 5 },
+    { "level": "REVIEW_REQUIRED", "count": 2 }
+  ],
+  "highRiskPatients": [],
+  "waitTimeByDept": [
+    {
+      "department": "Emergency",
+      "avgWaitTime": 15,
+      "estimatedWaitMin": 40,
+      "currentPatients": 8,
+      "bedOccupancy": 85
+    }
+  ],
+  "avgWaitTimeOverall": 22,
+  "riskDistributionByGender": [
+    { "gender": "F", "LOW": 10, "MEDIUM": 6, "HIGH": 3, "total": 19 },
+    { "gender": "M", "LOW": 10, "MEDIUM": 9, "HIGH": 2, "total": 21 }
+  ],
+  "riskDistributionByAge": [
+    { "ageGroup": "18-34", "LOW": 8, "MEDIUM": 5, "HIGH": 1, "total": 14 },
+    { "ageGroup": "35-49", "LOW": 6, "MEDIUM": 4, "HIGH": 2, "total": 12 }
+  ],
+  "arrivalRateHistory": [{ "hour": 0, "arrivals": 2 }, { "hour": 1, "arrivals": 1 }],
+  "forecastNextHour": 2,
+  "surgeMode": false,
+  "biasWarning": false,
+  "fairnessDetails": {
+    "biasWarning": false,
+    "overallHighRate": 0.12,
+    "byGender": [
+      { "gender": "F", "highRate": 0.16, "deviation": 0.04, "exceedsThreshold": false },
+      { "gender": "M", "highRate": 0.10, "deviation": 0.02, "exceedsThreshold": false }
+    ],
+    "byAgeGroup": [
+      { "ageGroup": "18-34", "highRate": 0.07, "deviation": 0.05, "exceedsThreshold": false }
+    ]
+  },
+  "aiDisagreementCount": 2
+}
