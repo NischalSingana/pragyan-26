@@ -12,7 +12,7 @@ export type DashboardData = {
     adjusted?: boolean;
     estimatedWaitMin?: number;
     priorityScore?: number;
-    explanation?: { confidence?: number } | null;
+    explanation?: { confidence?: number; contributing_factors?: Array<{ factor: string; impact: number }> } | null;
     ewsScore?: number | null;
     aiDisagreement?: boolean | null;
     createdAt: string;

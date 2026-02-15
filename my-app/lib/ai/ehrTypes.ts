@@ -12,6 +12,7 @@ export type EhrStructuredData = {
     bp?: string;
     heartRate?: number;
     temperature?: number;
+    spO2?: number;
     [key: string]: string | number | undefined;
   };
   conditions: Array<{ value: string; sourceSnippet?: string }>;
@@ -22,7 +23,7 @@ export type EhrStructuredData = {
 export type EhrFormData = {
   patient?: { name?: string; age?: number; gender?: string };
   symptoms: string[];
-  vitals: { bp?: string; heartRate?: number; temperature?: number };
+  vitals: { bp?: string; heartRate?: number; temperature?: number; spO2?: number };
   conditions: string[];
   medications: string[];
 };

@@ -210,6 +210,22 @@ export async function GET() {
     });
   } catch (e) {
     console.error("GET /api/dashboard:", e);
+    const message = e instanceof Error ? e.message : String(e);
+    const isDbUnreachable =
+      message.includes("Can't reach database") ||
+      message.includes("database server") ||
+      message.includes("PostgreSQL connection") ||
+      message.includes("kind: Closed") ||
+      (e as Error & { code?: string }).name === "PrismaClientInitializationError";
+    if (isDbUnreachable) {
+      return NextResponse.json(
+        {
+          error:
+            "Database unavailable. If you're using Neon, the database may be suspended—open the Neon console to wake it, then retry.",
+        },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
       { error: "Failed to load dashboard data" },
       { status: 500 }

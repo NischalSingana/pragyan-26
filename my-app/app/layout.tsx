@@ -19,7 +19,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Smart Triage · Hospital Command",
+  title: "HospIntel · Hospital Command",
   description: "AI-powered patient triage and hospital load optimization",
 };
 

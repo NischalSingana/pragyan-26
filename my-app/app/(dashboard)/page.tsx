@@ -48,11 +48,14 @@ export default function DashboardPage() {
       <header className="border-b border-border bg-card px-5 py-6 lg:px-8">
         <div className="mx-auto max-w-5xl">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl" style={{ fontFamily: "var(--font-outfit), system-ui, sans-serif" }}>
-            Smart Triage
+            HospIntel
           </h1>
           <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
             <span className="live-dot h-1.5 w-1.5 rounded-full bg-primary" />
             Hospital Command · Real-time optimization
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Hybrid engine: AI ensemble + rule-based safety + EWS · Risk summary &amp; department insights
           </p>
         </div>
       </header>

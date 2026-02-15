@@ -32,7 +32,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       clearTimeout(timeoutId);
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || `Failed to load dashboard (${res.status})`);
+        let errMessage = `Failed to load dashboard (${res.status})`;
+        try {
+          const json = JSON.parse(text) as { error?: string };
+          if (typeof json?.error === "string") errMessage = json.error;
+        } catch {
+          if (text) errMessage = text;
+        }
+        throw new Error(errMessage);
       }
       const json = await res.json();
       setData(json);

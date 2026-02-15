@@ -73,9 +73,9 @@ export function FileUpload({
   return (
     <div>
       <p className="mb-4 text-muted-foreground text-sm">
-        Upload a PDF (text) or image (JPEG/PNG). Images use Google Vision for
-        handwritten doc scanning; then AI extracts medical entities. Processing
-        runs in the background.
+        Upload an EHR/EMR health document as PDF (text) or image (JPEG/PNG).
+        Images use Google Vision for handwritten doc scanning; then AI extracts
+        medical entities. Processing runs in the background.
       </p>
       <input
         ref={inputRef}

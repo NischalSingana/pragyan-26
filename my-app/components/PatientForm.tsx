@@ -43,8 +43,18 @@ type Props = {
   applyDataRef?: React.MutableRefObject<((data: EhrFormData) => void) | null>;
 };
 
+type TriageResult = {
+  finalRisk: string;
+  finalRiskScore: number;
+  recommended_department: string;
+  contributing_factors: Array<{ factor: string; impact: number }>;
+  confidenceScore: number;
+};
+
 export function PatientForm({ onSuccess, applyDataRef }: Props) {
   const [loading, setLoading] = useState(false);
+  const [triageLoading, setTriageLoading] = useState(false);
+  const [triageResult, setTriageResult] = useState<TriageResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [symptomInput, setSymptomInput] = useState("");
   const [conditionInput, setConditionInput] = useState("");
@@ -56,6 +66,7 @@ export function PatientForm({ onSuccess, applyDataRef }: Props) {
     bloodPressure: "",
     heartRate: "",
     temperature: "",
+    spO2: "",
     preExistingConditions: [] as string[],
     riskLevel: "MEDIUM" as string,
     recommendedDepartment: "General Medicine",
@@ -104,6 +115,7 @@ export function PatientForm({ onSuccess, applyDataRef }: Props) {
       bloodPressure: data.vitals?.bp ?? f.bloodPressure,
       heartRate: data.vitals?.heartRate !== undefined ? String(data.vitals.heartRate) : f.heartRate,
       temperature: data.vitals?.temperature !== undefined ? String(data.vitals.temperature) : f.temperature,
+      spO2: data.vitals?.spO2 !== undefined ? String(data.vitals.spO2) : f.spO2,
       preExistingConditions: data.conditions?.length ? data.conditions : f.preExistingConditions,
     }));
   };
@@ -170,6 +182,7 @@ export function PatientForm({ onSuccess, applyDataRef }: Props) {
         bloodPressure: "",
         heartRate: "",
         temperature: "",
+        spO2: "",
         preExistingConditions: [],
         riskLevel: "MEDIUM",
         recommendedDepartment: "General Medicine",
@@ -178,6 +191,57 @@ export function PatientForm({ onSuccess, applyDataRef }: Props) {
       setError(e instanceof Error ? e.message : "Request failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRunAiTriage = async () => {
+    setError(null);
+    setTriageResult(null);
+    const age = parseInt(form.age, 10);
+    if (isNaN(age) || age < 0 || age > 150) {
+      setError("Age must be 0–150");
+      return;
+    }
+    if (!form.name.trim()) {
+      setError("Name is required for AI triage");
+      return;
+    }
+    setTriageLoading(true);
+    try {
+      const res = await fetch("/api/triage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          age,
+          gender: form.gender.trim() || "Unknown",
+          symptoms: form.symptoms,
+          vitals: {
+            ...(form.bloodPressure.trim() && { bp: form.bloodPressure.trim() }),
+            ...(form.heartRate && { heartRate: parseInt(form.heartRate, 10) }),
+            ...(form.temperature && { temperature: parseFloat(form.temperature) }),
+            ...(form.spO2 && { spO2: parseInt(form.spO2, 10) }),
+          },
+          preExistingConditions: form.preExistingConditions,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "AI triage failed");
+        return;
+      }
+      setTriageResult({
+        finalRisk: data.triage.finalRisk,
+        finalRiskScore: data.triage.finalRiskScore,
+        recommended_department: data.triage.recommended_department,
+        contributing_factors: data.triage.contributing_factors ?? [],
+        confidenceScore: data.triage.confidenceScore ?? 0,
+      });
+      onSuccess(data.patient.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Request failed");
+    } finally {
+      setTriageLoading(false);
     }
   };
 
@@ -222,7 +286,7 @@ export function PatientForm({ onSuccess, applyDataRef }: Props) {
           placeholder="e.g. Male, Female, Other"
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2">
           <Label htmlFor="bp" className="text-foreground">Blood pressure</Label>
           <Input id="bp" type="text" value={form.bloodPressure} onChange={(e) => setForm((f) => ({ ...f, bloodPressure: e.target.value }))} placeholder="e.g. 120/80" className="rounded-md border border-input bg-card text-foreground placeholder:text-muted-foreground" />
@@ -234,6 +298,10 @@ export function PatientForm({ onSuccess, applyDataRef }: Props) {
         <div className="space-y-2">
           <Label htmlFor="temp" className="text-foreground">Temperature (°F)</Label>
           <Input id="temp" type="number" step="0.1" min={90} max={110} value={form.temperature} onChange={(e) => setForm((f) => ({ ...f, temperature: e.target.value }))} className="rounded-md border border-input bg-card text-foreground placeholder:text-muted-foreground" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="spo2" className="text-foreground">SpO2 (%)</Label>
+          <Input id="spo2" type="number" min={0} max={100} value={form.spO2} onChange={(e) => setForm((f) => ({ ...f, spO2: e.target.value }))} placeholder="95–100" className="rounded-md border border-input bg-card text-foreground placeholder:text-muted-foreground" />
         </div>
       </div>
       <div className="space-y-2">
@@ -315,10 +383,47 @@ export function PatientForm({ onSuccess, applyDataRef }: Props) {
           </Select>
         </div>
       </div>
+      {triageResult && (
+        <div className="space-y-2 rounded-md border border-primary/30 bg-primary/5 p-4">
+          <h3 className="text-sm font-semibold text-foreground">AI Triage result (explainability)</h3>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="rounded-full bg-primary/20 px-2.5 py-0.5 font-medium text-primary">
+              {triageResult.finalRisk}
+            </span>
+            <span className="text-muted-foreground">→ {triageResult.recommended_department}</span>
+            <span className="text-muted-foreground">
+              Confidence: {(triageResult.confidenceScore * 100).toFixed(0)}%
+            </span>
+          </div>
+          {triageResult.contributing_factors.length > 0 && (
+            <div className="mt-2">
+              <p className="mb-1 text-xs font-medium text-muted-foreground">Contributing factors</p>
+              <ul className="list-inside list-disc space-y-0.5 text-xs text-foreground">
+                {triageResult.contributing_factors.map((f, i) => (
+                  <li key={i}>
+                    {f.factor} <span className="text-muted-foreground">(impact {(f.impact * 100).toFixed(0)}%)</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
       {error && <p className="text-amber-400 text-sm">{error}</p>}
-      <Button type="submit" disabled={loading} className="w-full rounded-md">
-        {loading ? "Saving..." : "Add patient"}
-      </Button>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={triageLoading || loading}
+          onClick={handleRunAiTriage}
+          className="rounded-md border border-primary/50 bg-primary/10 text-primary hover:bg-primary/20"
+        >
+          {triageLoading ? "Running AI triage…" : "Run AI triage"}
+        </Button>
+        <Button type="submit" disabled={loading || triageLoading} className="flex-1 rounded-md">
+          {loading ? "Saving..." : "Add patient (manual)"}
+        </Button>
+      </div>
     </form>
   );
 }

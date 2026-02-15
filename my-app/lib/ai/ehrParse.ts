@@ -2,7 +2,7 @@ import type { EhrStructuredData } from "./ehrTypes";
 
 function extractJson(text: string): string {
   const trimmed = text.trim();
-  const codeBlock = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const codeBlock = trimmed.match(/₹(?:json)?\s*([\s\S]*?)```/);
   if (codeBlock) return codeBlock[1].trim();
   return trimmed;
 }
@@ -53,6 +53,7 @@ export function parseEhrOutput(rawContent: string): EhrStructuredData {
     if (typeof v.bp === "string") vitals.bp = v.bp;
     if (typeof v.heartRate === "number") vitals.heartRate = v.heartRate;
     if (typeof v.temperature === "number") vitals.temperature = v.temperature;
+    if (typeof v.spO2 === "number") vitals.spO2 = v.spO2;
   }
 
   let patient: EhrStructuredData["patient"];
